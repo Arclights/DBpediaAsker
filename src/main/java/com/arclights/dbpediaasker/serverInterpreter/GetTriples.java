@@ -2,17 +2,17 @@ package com.arclights.dbpediaasker.serverInterpreter;
 
 import java.util.ArrayList;
 
-import namedEnteties.NamedEntities;
-import namedEnteties.NamedEntity;
+import com.arclights.dbpediaasker.namedEnteties.NamedEntities;
+import com.arclights.dbpediaasker.namedEnteties.NamedEntity;
 
 import org.maltparser.core.exception.MaltChainedException;
 import org.maltparser.core.syntaxgraph.DependencyStructure;
 import org.maltparser.core.syntaxgraph.node.DependencyNode;
 
-import tools.DependencyNodeTools;
-import triple.CreateTriples;
-import triple.Triple;
-import triple.URI;
+import com.arclights.dbpediaasker.tools.DependencyNodeTools;
+import com.arclights.dbpediaasker.triple.CreateTriples;
+import com.arclights.dbpediaasker.triple.Triple;
+import com.arclights.dbpediaasker.triple.URI;
 
 public class GetTriples {
 

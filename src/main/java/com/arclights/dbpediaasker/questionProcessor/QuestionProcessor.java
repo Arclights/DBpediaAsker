@@ -6,18 +6,18 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import namedEnteties.ExtractNamedEnteties;
-import namedEnteties.NamedEntities;
-import namedEnteties.NamedEntity;
 
+import com.arclights.dbpediaasker.dbPedia.ParseDbPediaURIs;
+import com.arclights.dbpediaasker.dbPedia.TranslateTags;
+import com.arclights.dbpediaasker.namedEnteties.ExtractNamedEnteties;
+import com.arclights.dbpediaasker.namedEnteties.NamedEntities;
+import com.arclights.dbpediaasker.namedEnteties.NamedEntity;
+import com.arclights.dbpediaasker.question.ExtractQuestions;
+import com.arclights.dbpediaasker.question.Question;
+import com.arclights.dbpediaasker.question.QuestionHandler;
 import org.maltparser.core.exception.MaltChainedException;
 
-import question.ExtractQuestions;
-import question.Question;
-import question.QuestionHandler;
-import triple.CreateTriples;
-import dbPedia.ParseDbPediaURIs;
-import dbPedia.TranslateTags;
+import com.arclights.dbpediaasker.triple.CreateTriples;
 
 public class QuestionProcessor {
 

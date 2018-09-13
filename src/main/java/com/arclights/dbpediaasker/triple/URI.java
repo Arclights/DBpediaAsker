@@ -1,4 +1,4 @@
-package triple;
+package com.arclights.dbpediaasker.triple;
 
 import java.util.HashMap;
 

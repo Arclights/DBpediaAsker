@@ -3,8 +3,8 @@ package com.arclights.dbpediaasker.namedEnteties;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import triple.Triple;
-import triple.URI;
+import com.arclights.dbpediaasker.triple.Triple;
+import com.arclights.dbpediaasker.triple.URI;
 
 public class NamedEntity implements Comparable<NamedEntity> {
 	/**
@@ -33,10 +33,10 @@ public class NamedEntity implements Comparable<NamedEntity> {
 	}
 
 	/**
-	 * Adds triple that is related to the named entity
+	 * Adds com.arclights.dbpediaasker.triple that is related to the named entity
 	 * 
 	 * @param t
-	 *            - The triple
+	 *            - The com.arclights.dbpediaasker.triple
 	 */
 	public void addTriple(Triple t) {
 		if (!triples.contains(t)) {
@@ -45,17 +45,17 @@ public class NamedEntity implements Comparable<NamedEntity> {
 	}
 
 	/**
-	 * Removes a certain triple from the named entity
+	 * Removes a certain com.arclights.dbpediaasker.triple from the named entity
 	 * 
 	 * @param t
-	 *            - The triple
+	 *            - The com.arclights.dbpediaasker.triple
 	 */
 	public void removeTriple(Triple t) {
 		triples.remove(t);
 	}
 
 	/**
-	 * Creates a triple that links the named entity with the name of the named
+	 * Creates a com.arclights.dbpediaasker.triple that links the named entity with the name of the named
 	 * entity
 	 * 
 	 * @param labels

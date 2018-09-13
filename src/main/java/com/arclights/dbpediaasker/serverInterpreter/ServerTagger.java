@@ -1,29 +1,10 @@
 package com.arclights.dbpediaasker.serverInterpreter;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
+import se.su.ling.stagger.*;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
-
-import se.su.ling.stagger.EnglishTokenizer;
-import se.su.ling.stagger.Evaluation;
-import se.su.ling.stagger.FormatException;
-import se.su.ling.stagger.LatinTokenizer;
-import se.su.ling.stagger.SwedishTokenizer;
-import se.su.ling.stagger.TagNameException;
-import se.su.ling.stagger.TaggedToken;
-import se.su.ling.stagger.Tagger;
-import se.su.ling.stagger.Token;
-import se.su.ling.stagger.Tokenizer;
 
 public class ServerTagger {
 	/**

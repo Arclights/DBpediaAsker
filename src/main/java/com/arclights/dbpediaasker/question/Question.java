@@ -2,13 +2,12 @@ package com.arclights.dbpediaasker.question;
 
 import java.util.ArrayList;
 
-import namedEnteties.NamedEntity;
-
+import com.arclights.dbpediaasker.namedEnteties.NamedEntity;
 import org.maltparser.core.exception.MaltChainedException;
 import org.maltparser.core.syntaxgraph.DependencyStructure;
 
-import tools.DependencyNodeTools;
-import triple.Triple;
+import com.arclights.dbpediaasker.tools.DependencyNodeTools;
+import com.arclights.dbpediaasker.triple.Triple;
 
 public class Question {
 	/**
@@ -109,7 +108,7 @@ public class Question {
 	}
 
 	/**
-	 * Adds a triple
+	 * Adds a com.arclights.dbpediaasker.triple
 	 * 
 	 * @param t
 	 *            - Triple
@@ -121,7 +120,7 @@ public class Question {
 	}
 
 	/**
-	 * Removes a triple
+	 * Removes a com.arclights.dbpediaasker.triple
 	 * 
 	 * @param t
 	 *            - Triple
@@ -149,7 +148,7 @@ public class Question {
 	}
 
 	/**
-	 * Checks if the question contains at least one valid triple
+	 * Checks if the question contains at least one valid com.arclights.dbpediaasker.triple
 	 * 
 	 * @return
 	 */

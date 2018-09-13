@@ -1,6 +1,6 @@
-package triple;
+package com.arclights.dbpediaasker.triple;
 
-import namedEnteties.NamedEntity;
+import com.arclights.dbpediaasker.namedEnteties.NamedEntity;
 
 public class Triple {
 	NamedEntity s;
@@ -28,7 +28,7 @@ public class Triple {
 	}
 
 	/**
-	 * Returns true if the triple is valid, i.e. none of the components are
+	 * Returns true if the com.arclights.dbpediaasker.triple is valid, i.e. none of the components are
 	 * null, the subject has a DBpedia URI and the object i either a named
 	 * entity with a DBpedia URI or a string.
 	 * 
@@ -76,7 +76,7 @@ public class Triple {
 	}
 
 	/**
-	 * Returns the entire triple in Turtle file format
+	 * Returns the entire com.arclights.dbpediaasker.triple in Turtle file format
 	 * 
 	 * @return
 	 */

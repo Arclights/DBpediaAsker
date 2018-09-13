@@ -5,9 +5,10 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import namedEnteties.NamedEntities;
-import namedEnteties.NamedEntity;
 
+import com.arclights.dbpediaasker.namedEnteties.NamedEntities;
+import com.arclights.dbpediaasker.namedEnteties.NamedEntity;
+import com.arclights.dbpediaasker.question.Question;
 import org.openrdf.OpenRDFException;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
@@ -20,9 +21,8 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sparql.SPARQLRepository;
 
-import question.Question;
 
-import triple.Triple;
+import com.arclights.dbpediaasker.triple.Triple;
 
 public class TranslateTags {
 	private static String server = "http://dbpedia.org/sparql/";
@@ -115,10 +115,10 @@ public class TranslateTags {
 	 * @param con
 	 *            - The connection
 	 * @param s
-	 *            - The subject in the triple to match
+	 *            - The subject in the com.arclights.dbpediaasker.triple to match
 	 * @param o
-	 *            - The object in the triple to match
-	 * @return - The predicate, if triple found
+	 *            - The object in the com.arclights.dbpediaasker.triple to match
+	 * @return - The predicate, if com.arclights.dbpediaasker.triple found
 	 * @throws RepositoryException
 	 * @throws MalformedQueryException
 	 * @throws QueryEvaluationException
@@ -148,9 +148,9 @@ public class TranslateTags {
 	 * Generates the query for DBpedia
 	 * 
 	 * @param s
-	 *            - The subject of the sought after triple
+	 *            - The subject of the sought after com.arclights.dbpediaasker.triple
 	 * @param o
-	 *            - The object of the sought after triple
+	 *            - The object of the sought after com.arclights.dbpediaasker.triple
 	 * @return - The query
 	 */
 	private static String getQuery(NamedEntity s, NamedEntity o) {
@@ -184,10 +184,10 @@ public class TranslateTags {
 	 * @param nbrOfQuestions
 	 *            - The number of questions found in total
 	 * @param questionsTagCovered
-	 *            - The number of questions that has at least one triple that
+	 *            - The number of questions that has at least one com.arclights.dbpediaasker.triple that
 	 *            has a tag
 	 * @param questionsDBpediaCovered
-	 *            - The number of questions that has at least one triple who's
+	 *            - The number of questions that has at least one com.arclights.dbpediaasker.triple who's
 	 *            tag has a corresponding label in DBpedia
 	 * @param nbrOfTriples
 	 *            - The total number of triples generated
@@ -223,15 +223,15 @@ public class TranslateTags {
 			writer.println("Total number of triples: " + nbrOfTriples);
 			writer.println("Number of triples covered by Tags: "
 					+ triplesTagCovered);
-			writer.println("Tag triple coverage: "
+			writer.println("Tag com.arclights.dbpediaasker.triple coverage: "
 					+ Math.round(triplesTagCovered / nbrOfTriples * 100) + "%");
 			writer.println("Number of triples covered by DBpedia: "
 					+ triplesDBpediaCovered);
-			writer.println("DBpedia triple coverage: "
+			writer.println("DBpedia com.arclights.dbpediaasker.triple coverage: "
 					+ Math.round(triplesDBpediaCovered / nbrOfTriples * 100)
 					+ "%");
 			writer.println();
-			writer.println("Percentage of named entities extracted as part of a tagged triple: "
+			writer.println("Percentage of named entities extracted as part of a tagged com.arclights.dbpediaasker.triple: "
 					+ getNECoverage(NEs, questions) + "%");
 			writer.close();
 		} catch (FileNotFoundException e) {
@@ -242,7 +242,7 @@ public class TranslateTags {
 
 	/**
 	 * Calculates the coverage of how many named entities belongs to at least
-	 * one triple
+	 * one com.arclights.dbpediaasker.triple
 	 * 
 	 * @param NEs - The named entities
 	 * @param questions - The questions with corresponding answers and triples

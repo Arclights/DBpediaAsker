@@ -1,4 +1,4 @@
-package tools;
+package com.arclights.dbpediaasker.tools;
 
 import org.maltparser.core.exception.MaltChainedException;
 import org.maltparser.core.symbol.SymbolTable;

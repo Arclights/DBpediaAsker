@@ -1,18 +1,16 @@
-package triple;
+package com.arclights.dbpediaasker.triple;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import namedEnteties.NamedEntities;
-import namedEnteties.NamedEntity;
-
+import com.arclights.dbpediaasker.namedEnteties.NamedEntities;
+import com.arclights.dbpediaasker.namedEnteties.NamedEntity;
+import com.arclights.dbpediaasker.question.Question;
+import com.arclights.dbpediaasker.tools.DependencyNodeTools;
+import com.arclights.dbpediaasker.tools.DependencyStructureTool;
 import org.maltparser.core.exception.MaltChainedException;
 import org.maltparser.core.syntaxgraph.DependencyStructure;
 import org.maltparser.core.syntaxgraph.node.DependencyNode;
 
-import question.Question;
-import tools.DependencyNodeTools;
-import tools.DependencyStructureTool;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class CreateTriples {
 
@@ -20,7 +18,7 @@ public class CreateTriples {
 	 * Generates triples from questions and answers. If first tries to find
 	 * named entities in the answers. If there is none, it will try and find
 	 * nouns instead
-	 * 
+	 *
 	 * @param questions
 	 *            - The question structure
 	 * @param NEs
@@ -30,7 +28,7 @@ public class CreateTriples {
 	 * @throws MaltChainedException
 	 */
 	public static void create(ArrayList<Question> questions, NamedEntities NEs,
-			HashMap<String, String> dbpediaURIs) throws MaltChainedException {
+                              HashMap<String, String> dbpediaURIs) throws MaltChainedException {
 
 		System.out.println("Creating new triples...");
 		for (Question question : questions) {
@@ -107,7 +105,7 @@ public class CreateTriples {
 	/**
 	 * Tries to find a noun in the dependency structure and packs it as a named
 	 * entities
-	 * 
+	 *
 	 * @param ds
 	 *            - Dependency structure
 	 * @param dbpediaURIs
@@ -137,7 +135,7 @@ public class CreateTriples {
 
 	/**
 	 * Tries to find the named entities in the dependency structure
-	 * 
+	 *
 	 * @param ds
 	 *            - Dependency structure
 	 * @param NEs
@@ -188,7 +186,7 @@ public class CreateTriples {
 	 * Tries to find a noun by starting at a dependency node and working its way
 	 * up the structure. If it finds none, it will try and go forward from the
 	 * root instead.
-	 * 
+	 *
 	 * @param node
 	 * @param ds
 	 * @return
@@ -213,7 +211,7 @@ public class CreateTriples {
 
 	/**
 	 * Tries to find a noun beginning from the root
-	 * 
+	 *
 	 * @param node
 	 *            - The dependency node
 	 * @return

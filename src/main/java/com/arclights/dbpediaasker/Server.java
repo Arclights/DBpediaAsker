@@ -1,4 +1,4 @@
-package com.arclights.dbpediaasker.serverInterpreter;
+package com.arclights.dbpediaasker;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,9 +9,14 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import namedEnteties.ExtractNamedEnteties;
-import namedEnteties.NamedEntities;
-import namedEnteties.NamedEntity;
+import com.arclights.dbpediaasker.dbPedia.ParseDbPediaURIs;
+import com.arclights.dbpediaasker.namedEnteties.ExtractNamedEnteties;
+import com.arclights.dbpediaasker.namedEnteties.NamedEntities;
+import com.arclights.dbpediaasker.namedEnteties.NamedEntity;
+import com.arclights.dbpediaasker.serverInterpreter.GetDependencyStructure;
+import com.arclights.dbpediaasker.serverInterpreter.GetTriples;
+import com.arclights.dbpediaasker.serverInterpreter.ParseTagTranslations;
+import com.arclights.dbpediaasker.serverInterpreter.ServerTagger;
 
 import org.maltparser.core.exception.MaltChainedException;
 import org.maltparser.core.syntaxgraph.DependencyStructure;
@@ -27,11 +32,7 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.http.HTTPRepository;
 import org.openrdf.repository.sparql.SPARQLRepository;
 
-import dbPedia.ParseDbPediaURIs;
-
-import se.su.ling.stagger.FormatException;
-import se.su.ling.stagger.TagNameException;
-import triple.Triple;
+import com.arclights.dbpediaasker.triple.Triple;
 
 public class Server {
 
@@ -103,12 +104,6 @@ public class Server {
 				} catch (MaltChainedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				} catch (FormatException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (TagNameException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 
 				PrintWriter socketWriter = new PrintWriter(
@@ -158,7 +153,7 @@ public class Server {
 	 * Searches the local database created by the question processor
 	 * 
 	 * @param t
-	 *            - The triple to search for
+	 *            - The com.arclights.dbpediaasker.triple to search for
 	 * @param tagTrans
 	 *            - The tag -> label translations
 	 * @return
@@ -219,7 +214,7 @@ public class Server {
 	 * potential name of the entity
 	 * 
 	 * @param t
-	 *            - The triple
+	 *            - The com.arclights.dbpediaasker.triple
 	 * @param tagTrans
 	 *            - The tag -> label translations
 	 * @return
@@ -238,7 +233,7 @@ public class Server {
 	 * potential name of the entity
 	 * 
 	 * @param t
-	 *            - The triple
+	 *            - The com.arclights.dbpediaasker.triple
 	 * @param tagTrans
 	 *            - The tag -> label translations
 	 * @return
@@ -254,7 +249,7 @@ public class Server {
 	 * Searches DBpedia for an answer
 	 * 
 	 * @param t
-	 *            - The triple
+	 *            - The com.arclights.dbpediaasker.triple
 	 * @param tagTrans
 	 *            - The tag -> label translations
 	 * @return
@@ -325,7 +320,7 @@ public class Server {
 	 * name of the entity
 	 * 
 	 * @param t
-	 *            - The triple
+	 *            - The com.arclights.dbpediaasker.triple
 	 * @param tagTrans
 	 *            - The tag -> label translations
 	 * @return
@@ -344,7 +339,7 @@ public class Server {
 	 * English name of the entity
 	 * 
 	 * @param t
-	 *            - The triple
+	 *            - The com.arclights.dbpediaasker.triple
 	 * @param tagTrans
 	 *            - The tag -> label translations
 	 * @return
@@ -363,7 +358,7 @@ public class Server {
 	 * of the entity
 	 * 
 	 * @param t
-	 *            - The triple
+	 *            - The com.arclights.dbpediaasker.triple
 	 * @param tagTrans
 	 *            - The tag -> label translations
 	 * @return

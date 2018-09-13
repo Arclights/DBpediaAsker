@@ -10,7 +10,7 @@ import org.maltparser.MaltParserService;
 import org.maltparser.core.exception.MaltChainedException;
 import org.maltparser.core.syntaxgraph.DependencyStructure;
 
-import tools.DependencyStructureTool;
+import com.arclights.dbpediaasker.tools.DependencyStructureTool;
 
 public class GetDependencyStructure {
 

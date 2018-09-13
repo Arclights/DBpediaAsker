@@ -45,6 +45,8 @@ $RECYCLE.BIN/
 *.tar.gz
 *.rar
 
+!src/main/resources/libs/*.jar
+
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 ### JetBrains template
@@ -52,6 +54,7 @@ hs_err_pid*
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 .idea
+*.iml
 
 # CMake
 cmake-build-*/
@@ -74,8 +77,6 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
-# Editor-based Rest Client
-.idea/httpRequests
 ### Gradle template
 .gradle
 /build/

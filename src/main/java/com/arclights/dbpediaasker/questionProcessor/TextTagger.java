@@ -1,11 +1,6 @@
 package com.arclights.dbpediaasker.questionProcessor;
 
-import se.su.ling.stagger.*;
-import se.su.ling.stagger.Tagger;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.zip.GZIPInputStream;
+import java.io.IOException;
 
 public class TextTagger {
 

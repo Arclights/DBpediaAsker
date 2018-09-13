@@ -1,4 +1,4 @@
-package tools;
+package com.arclights.dbpediaasker.tools;
 
 import java.util.TreeSet;
 
