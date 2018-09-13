@@ -1,4 +1,4 @@
-package question;
+package com.arclights.dbpediaasker.question;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

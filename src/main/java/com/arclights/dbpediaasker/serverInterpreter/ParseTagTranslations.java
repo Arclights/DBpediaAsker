@@ -1,4 +1,4 @@
-package serverInterpreter;
+package com.arclights.dbpediaasker.serverInterpreter;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

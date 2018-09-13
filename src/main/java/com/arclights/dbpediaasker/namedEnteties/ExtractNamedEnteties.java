@@ -1,4 +1,4 @@
-package namedEnteties;
+package com.arclights.dbpediaasker.namedEnteties;
 
 import java.io.BufferedReader;
 import java.io.File;

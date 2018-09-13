@@ -1,4 +1,4 @@
-package dbPedia;
+package com.arclights.dbpediaasker.dbPedia;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;

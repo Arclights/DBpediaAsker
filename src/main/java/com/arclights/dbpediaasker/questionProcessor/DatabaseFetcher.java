@@ -1,4 +1,4 @@
-package questionProcessor;
+package com.arclights.dbpediaasker.questionProcessor;
 
 import java.io.BufferedWriter;
 import java.io.File;
