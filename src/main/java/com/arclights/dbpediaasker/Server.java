@@ -1,14 +1,5 @@
 package com.arclights.dbpediaasker;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import com.arclights.dbpediaasker.dbPedia.ParseDbPediaURIs;
 import com.arclights.dbpediaasker.namedEnteties.ExtractNamedEnteties;
 import com.arclights.dbpediaasker.namedEnteties.NamedEntities;
@@ -17,7 +8,15 @@ import com.arclights.dbpediaasker.serverInterpreter.GetDependencyStructure;
 import com.arclights.dbpediaasker.serverInterpreter.GetTriples;
 import com.arclights.dbpediaasker.serverInterpreter.ParseTagTranslations;
 import com.arclights.dbpediaasker.serverInterpreter.ServerTagger;
-
+import com.arclights.dbpediaasker.triple.Triple;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
 import org.maltparser.core.exception.MaltChainedException;
 import org.maltparser.core.syntaxgraph.DependencyStructure;
 import org.openrdf.query.BindingSet;
@@ -31,22 +30,22 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.http.HTTPRepository;
 import org.openrdf.repository.sparql.SPARQLRepository;
-
-import com.arclights.dbpediaasker.triple.Triple;
+import se.su.ling.stagger.FormatException;
+import se.su.ling.stagger.TagNameException;
 
 public class Server {
 
 	/**
 	 * The server that waits for a question from the web interface Send back the
 	 * answer if it finds one
-	 * 
+	 *
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		try {
 			PrintWriter writer;
 			System.out.println("Loading tagger...");
-			ServerTagger tagger = new ServerTagger("swedish.bin");
+			ServerTagger tagger = new ServerTagger("configs/swedish.bin");
 			System.out.println("Tagger loaded");
 
 			HashMap<String, String> tagTrans = ParseTagTranslations.parse();
@@ -104,6 +103,10 @@ public class Server {
 				} catch (MaltChainedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+				} catch (FormatException e) {
+					e.printStackTrace();
+				} catch (TagNameException e) {
+					e.printStackTrace();
 				}
 
 				PrintWriter socketWriter = new PrintWriter(
@@ -123,7 +126,7 @@ public class Server {
 	/**
 	 * Returns an answer for the question, if there is one, by first searching
 	 * locally. If it doesn't find an answer there it proceeds to search DBpedia
-	 * 
+	 *
 	 * @param triples
 	 *            - The incomplete triples that, when complete, can answer the
 	 *            question
@@ -135,7 +138,7 @@ public class Server {
 			HashMap<String, String> tagTrans) {
 		String answer = "Error: Doesn't contain any named entity";
 		if (!triples.isEmpty()) {
-			answer = searchlocalDb(triples.get(0), tagTrans);
+			answer = searchlocalDb(triples.get(0));
 
 			if (answer == null) {
 				answer = searchDbPedia(triples.get(0), tagTrans);
@@ -151,23 +154,20 @@ public class Server {
 
 	/**
 	 * Searches the local database created by the question processor
-	 * 
+	 *
 	 * @param t
 	 *            - The com.arclights.dbpediaasker.triple to search for
-	 * @param tagTrans
-	 *            - The tag -> label translations
 	 * @return
 	 */
-	private static String searchlocalDb(Triple t,
-			HashMap<String, String> tagTrans) {
+	private static String searchlocalDb(Triple t) {
 		Repository repo = new HTTPRepository(
 				"http://aakerberg.net:8077/openrdf-sesame/", "solution");
 		RepositoryConnection con = null;
 		try {
 			con = repo.getConnection();
 			TupleQuery tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
-					getLocalDbQuery(t, tagTrans));
-			System.out.println("Local Query: " + getLocalDbQuery(t, tagTrans));
+					getLocalDbQuery(t));
+			System.out.println("Local Query: " + getLocalDbQuery(t));
 
 			TupleQueryResult result = tupleQuery.evaluate();
 			BindingSet bindingSet;
@@ -176,9 +176,9 @@ public class Server {
 				return bindingSet.getValue("name").toString();
 			} else {
 				tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
-						getAltLocalDbQuery(t, tagTrans));
+						getAltLocalDbQuery(t));
 				System.out.println("Local Alternative Query: "
-						+ getAltLocalDbQuery(t, tagTrans));
+						+ getAltLocalDbQuery(t));
 				result = tupleQuery.evaluate();
 				if (result.hasNext()) {
 					bindingSet = result.next();
@@ -212,15 +212,12 @@ public class Server {
 	/**
 	 * Generates the query to search the local database and trying to get the
 	 * potential name of the entity
-	 * 
+	 *
 	 * @param t
 	 *            - The com.arclights.dbpediaasker.triple
-	 * @param tagTrans
-	 *            - The tag -> label translations
 	 * @return
 	 */
-	private static String getLocalDbQuery(Triple t,
-			HashMap<String, String> tagTrans) {
+	private static String getLocalDbQuery(Triple t) {
 		return "PREFIX tags:<http://aakerber.net/tags/>\nPREFIX dbp:<http://dbpedia.org/resource/>\nPREFIX dbpporp:<http://dbpedia.org/property/>\nPREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nselect ?name {"
 				+ ((NamedEntity) t.getS()).getDbPediaURI().getQueryVersion()
 				+ " <"
@@ -231,15 +228,12 @@ public class Server {
 	/**
 	 * Generates the query to search the local database without getting the
 	 * potential name of the entity
-	 * 
+	 *
 	 * @param t
 	 *            - The com.arclights.dbpediaasker.triple
-	 * @param tagTrans
-	 *            - The tag -> label translations
 	 * @return
 	 */
-	private static String getAltLocalDbQuery(Triple t,
-			HashMap<String, String> tagTrans) {
+	private static String getAltLocalDbQuery(Triple t) {
 		return "PREFIX tags:<http://aakerber.net/tags/>\nPREFIX dbp:<http://dbpedia.org/resource/>\nPREFIX dbpporp:<http://dbpedia.org/property/>\nPREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nselect ?o {"
 				+ ((NamedEntity) t.getS()).getDbPediaURI().getQueryVersion()
 				+ " <" + t.getLabel() + "> ?o .}";
@@ -247,7 +241,7 @@ public class Server {
 
 	/**
 	 * Searches DBpedia for an answer
-	 * 
+	 *
 	 * @param t
 	 *            - The com.arclights.dbpediaasker.triple
 	 * @param tagTrans
@@ -318,7 +312,7 @@ public class Server {
 	/**
 	 * Generates the query to search DBpedia and trying to get the potential
 	 * name of the entity
-	 * 
+	 *
 	 * @param t
 	 *            - The com.arclights.dbpediaasker.triple
 	 * @param tagTrans
@@ -337,7 +331,7 @@ public class Server {
 	/**
 	 * Generates the query to search DBpedia and trying to get the potential
 	 * English name of the entity
-	 * 
+	 *
 	 * @param t
 	 *            - The com.arclights.dbpediaasker.triple
 	 * @param tagTrans
@@ -356,7 +350,7 @@ public class Server {
 	/**
 	 * Generates the query to search DBpedia without getting the potential name
 	 * of the entity
-	 * 
+	 *
 	 * @param t
 	 *            - The com.arclights.dbpediaasker.triple
 	 * @param tagTrans
@@ -376,7 +370,7 @@ public class Server {
 	 * quotes, the quotes are removed, ie. "obi-wan kenobi". Else if the string
 	 * is surrounded by quotes and a language marker, the marker and the quotes
 	 * are remove, ie. "Moscow"@en.
-	 * 
+	 *
 	 * @param in
 	 * @return
 	 */
