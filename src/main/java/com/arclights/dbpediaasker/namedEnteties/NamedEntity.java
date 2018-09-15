@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import com.arclights.dbpediaasker.triple.Triple;
 import com.arclights.dbpediaasker.triple.URI;
+import java.util.Map;
 
 public class NamedEntity implements Comparable<NamedEntity> {
 	/**
@@ -61,7 +62,7 @@ public class NamedEntity implements Comparable<NamedEntity> {
 	 * @param labels
 	 *            - The labels from DBpedia
 	 */
-	public void setIdentifiers(HashMap<String, String> labels) {
+	public void setIdentifiers(Map<String, String> labels) {
 		extractDbPediaURI(labels);
 		Triple t = new Triple(this, new URI(
 				"<http://dbpedia.org/property/name>"), getName());
@@ -74,7 +75,7 @@ public class NamedEntity implements Comparable<NamedEntity> {
 	 * @param labels
 	 *            - The labels from DBpedia
 	 */
-	private void extractDbPediaURI(HashMap<String, String> labels) {
+	private void extractDbPediaURI(Map<String, String> labels) {
 		if (labels.containsKey(getName())) {
 			dbPediaURI = new URI("<" + labels.get(getName()) + ">");
 		}

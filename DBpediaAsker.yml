@@ -1,0 +1,3 @@
+port: 8080
+swagger:
+  resourcePackage: "com.arclights.dbpediaasker.api"

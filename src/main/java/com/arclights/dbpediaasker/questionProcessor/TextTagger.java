@@ -17,7 +17,7 @@ public class TextTagger {
         System.out.println("Tagging...");
 		Process proc = Runtime
 				.getRuntime()
-				.exec("java -Xms2000M -jar stagger.jar -modelfile configs/swedish.bin -tag RDF_output.txt > out.txt");
+				.exec("java -Xms2000M -jar src/main/resources/libs/stagger.jar -modelfile configs/swedish.bin -tag RDF_output.txt > out.txt");
 		proc.waitFor();
     }
 
