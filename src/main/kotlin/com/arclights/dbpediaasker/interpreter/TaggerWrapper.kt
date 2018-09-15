@@ -4,8 +4,21 @@ import com.google.common.io.CharSource
 import com.google.inject.Inject
 import io.dropwizard.lifecycle.Managed
 import org.slf4j.LoggerFactory
-import se.su.ling.stagger.*
-import java.io.*
+import se.su.ling.stagger.EnglishTokenizer
+import se.su.ling.stagger.Evaluation
+import se.su.ling.stagger.FormatException
+import se.su.ling.stagger.LatinTokenizer
+import se.su.ling.stagger.SwedishTokenizer
+import se.su.ling.stagger.TagNameException
+import se.su.ling.stagger.TaggedToken
+import se.su.ling.stagger.Tagger
+import se.su.ling.stagger.Token
+import se.su.ling.stagger.Tokenizer
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.ObjectInputStream
+import java.io.Reader
+import java.io.StringReader
 
 /**
  * Wrapper of Stagger that pre-loads Stagger so it doesn't have to be
@@ -47,12 +60,12 @@ class TaggerWrapper @Inject constructor(private val taggerModel: CharSource) : M
      * @throws java.io.IOException
      */
     @Throws(FormatException::class, TagNameException::class, IOException::class)
-    fun tag(question: String): String {
+    fun tag(question: String): TaggedStrings {
         var fileID = question.split("\\s".toRegex()).first()
         val reader = StringReader(question)
         val tokenizer = getTokenizer(reader, lang)
         var sentIdx = 0
-        val sb = StringBuilder()
+        val taggedStrings = TaggedStrings()
         tokenizer
                 .getSentenceIterator()
                 .forEach { sentence ->
@@ -63,11 +76,11 @@ class TaggerWrapper @Inject constructor(private val taggerModel: CharSource) : M
                     val sent = sentence.map { TaggedToken(it, "$fileID:$sentIdx:$it.offset") }.toTypedArray()
                     val taggedSent = tagger.tagSentence(sent, true, false)
 
-                    tagger.taggedData.writeConllSentence(sb, taggedSent, plainOutput)
+                    tagger.taggedData.writeConllSentence(taggedStrings, taggedSent, plainOutput)
                     sentIdx++
                 }
         tokenizer.yyclose()
-        return sb.toString()
+        return taggedStrings
     }
 
     /**

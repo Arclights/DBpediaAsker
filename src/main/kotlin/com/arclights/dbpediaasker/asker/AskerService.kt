@@ -41,9 +41,9 @@ class AskerService @Inject constructor(private val taggerWrapper: TaggerWrapper)
     fun ask(question: String): String? {
         logger.debug(question)
         logger.debug("Tagging question...")
-        val taggedQuestion=taggerWrapper.tag(question)
+        val taggedQuestion = taggerWrapper.tag(question)
         logger.debug("Question tagged")
-        logger.debug(taggedQuestion)
+        logger.debug(taggedQuestion.toString())
 
         val NEs = ExtractNamedEnteties
                 .extract("questionToTag.txt.conll")
