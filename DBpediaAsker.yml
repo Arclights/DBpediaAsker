@@ -1,3 +1,6 @@
 port: 8080
+taggerModel: configs/swedish.bin
 swagger:
-  resourcePackage: "com.arclights.dbpediaasker.api"
+  resourcePackage: com.arclights.dbpediaasker.api
+logging:
+  level: DEBUG

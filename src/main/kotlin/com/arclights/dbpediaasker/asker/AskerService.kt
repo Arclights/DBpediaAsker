@@ -1,12 +1,12 @@
 package com.arclights.dbpediaasker.asker
 
 import com.arclights.dbpediaasker.dbPedia.ParseDbPediaURIs
+import com.arclights.dbpediaasker.interpreter.TaggerWrapper
 import com.arclights.dbpediaasker.namedEnteties.ExtractNamedEnteties
 import com.arclights.dbpediaasker.namedEnteties.NamedEntity
 import com.arclights.dbpediaasker.serverInterpreter.GetDependencyStructure
 import com.arclights.dbpediaasker.serverInterpreter.GetTriples
 import com.arclights.dbpediaasker.serverInterpreter.ParseTagTranslations
-import com.arclights.dbpediaasker.serverInterpreter.ServerTagger
 import com.arclights.dbpediaasker.triple.Triple
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -16,20 +16,20 @@ import org.openrdf.repository.RepositoryConnection
 import org.openrdf.repository.RepositoryException
 import org.openrdf.repository.http.HTTPRepository
 import org.openrdf.repository.sparql.SPARQLRepository
-import java.io.PrintWriter
+import org.slf4j.LoggerFactory
 import java.util.*
 
 @Singleton
-class AskerService @Inject constructor() : Managed {
+class AskerService @Inject constructor(private val taggerWrapper: TaggerWrapper) : Managed {
 
-    private lateinit var tagger: ServerTagger
+    val logger = LoggerFactory.getLogger(this::class.java)
+
     private lateinit var dbpediaURIs: Map<String, String>
     private lateinit var tagTrans: Map<String, String>
 
     override fun start() {
-        println("Loading tagger...")
-        tagger = ServerTagger("configs/swedish.bin")
-        println("Tagger loaded")
+        logger.info("Loading tagger...")
+        logger.info("Tagger loaded")
 
         dbpediaURIs = ParseDbPediaURIs.parse()
         tagTrans = ParseTagTranslations.parse()
@@ -39,12 +39,11 @@ class AskerService @Inject constructor() : Managed {
     }
 
     fun ask(question: String): String? {
-        println(question)
-        println("Tagging question...")
-        val inputFiles = ArrayList<String>()
-        inputFiles.add("questionToTag.txt")
-        tagger.tag(inputFiles)
-        println("Question tagged")
+        logger.debug(question)
+        logger.debug("Tagging question...")
+        val taggedQuestion=taggerWrapper.tag(question)
+        logger.debug("Question tagged")
+        logger.debug(taggedQuestion)
 
         val NEs = ExtractNamedEnteties
                 .extract("questionToTag.txt.conll")
@@ -52,18 +51,18 @@ class AskerService @Inject constructor() : Managed {
             ne.setIdentifiers(dbpediaURIs)
         }
         NEs.clearUp()
-        println("Named entities extracted...")
-        println("Named entities:")
+        logger.debug("Named entities extracted...")
+        logger.debug("Named entities:")
         for (key in NEs.keys) {
-            println(key + "->" + NEs[key])
+            logger.debug(key + "->" + NEs[key])
         }
 
-        println("Retrieving dependency structure...")
+        logger.debug("Retrieving dependency structure...")
         val ds = GetDependencyStructure
                 .getStructure()
-        println("Derpendency structure retreived")
+        logger.debug("Derpendency structure retreived")
 
-        println("Creating triples...")
+        logger.debug("Creating triples...")
         val triples = GetTriples.get(ds!!, NEs)
 
         for (t in triples) {
@@ -84,8 +83,10 @@ class AskerService @Inject constructor() : Managed {
      * - The hashmap with the tag -> label translations
      * @return
      */
-    private fun getAnswer(triples: ArrayList<Triple>,
-                          tagTrans: Map<String, String>): String? {
+    private fun getAnswer(
+            triples: ArrayList<Triple>,
+            tagTrans: Map<String, String>
+    ): String? {
         var answer: String? = "Error: Doesn't contain any named entity"
         if (!triples.isEmpty()) {
             answer = searchlocalDb(triples[0])
@@ -117,7 +118,7 @@ class AskerService @Inject constructor() : Managed {
             con = repo.connection
             var tupleQuery = con!!.prepareTupleQuery(QueryLanguage.SPARQL,
                     getLocalDbQuery(t))
-            println("Local Query: " + getLocalDbQuery(t))
+            logger.debug("Local Query: " + getLocalDbQuery(t))
 
             var result = tupleQuery.evaluate()
             val bindingSet: BindingSet
@@ -125,9 +126,8 @@ class AskerService @Inject constructor() : Managed {
                 bindingSet = result.next()
                 return bindingSet.getValue("name").toString()
             } else {
-                tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
-                        getAltLocalDbQuery(t))
-                println("Local Alternative Query: " + getAltLocalDbQuery(t))
+                tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL, getAltLocalDbQuery(t))
+                logger.debug("Local Alternative Query: " + getAltLocalDbQuery(t))
                 result = tupleQuery.evaluate()
                 if (result.hasNext()) {
                     bindingSet = result.next()
@@ -197,17 +197,18 @@ class AskerService @Inject constructor() : Managed {
      * - The tag -> label translations
      * @return
      */
-    private fun searchDbPedia(t: Triple,
-                              tagTrans: Map<String, String>): String? {
-        val repo = SPARQLRepository(
-                "http://dbpedia.org/sparql/")
+    private fun searchDbPedia(
+            t: Triple,
+            tagTrans: Map<String, String>
+    ): String? {
+        val repo = SPARQLRepository("http://dbpedia.org/sparql/")
         var result: TupleQueryResult? = null
         try {
             repo.initialize()
             val con = repo.connection
             var tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
                     getDbPediaQuery(t, tagTrans))
-            println("Dbpedia Query: " + getDbPediaQuery(t, tagTrans))
+            logger.debug("Dbpedia Query: " + getDbPediaQuery(t, tagTrans))
             result = tupleQuery.evaluate()
             val bindingSet: BindingSet
             if (result!!.hasNext()) {
@@ -216,7 +217,7 @@ class AskerService @Inject constructor() : Managed {
             } else {
                 tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
                         getAltDbPediaQuery(t, tagTrans))
-                println("Dbpedia Alternative Query: " + getAltDbPediaQuery(t, tagTrans))
+                logger.debug("Dbpedia Alternative Query: " + getAltDbPediaQuery(t, tagTrans))
                 result = tupleQuery.evaluate()
                 if (result!!.hasNext()) {
                     bindingSet = result.next()
@@ -224,7 +225,7 @@ class AskerService @Inject constructor() : Managed {
                 } else {
                     tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
                             getAlt2DbPediaQuery(t, tagTrans))
-                    println("Dbpedia Alternative Query: " + getAlt2DbPediaQuery(t, tagTrans))
+                    logger.debug("Dbpedia Alternative Query: " + getAlt2DbPediaQuery(t, tagTrans))
                     result = tupleQuery.evaluate()
                     if (result!!.hasNext()) {
                         bindingSet = result.next()
