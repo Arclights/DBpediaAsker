@@ -1,10 +1,10 @@
 package com.arclights.dbpediaasker.asker
 
 import com.arclights.dbpediaasker.dbPedia.ParseDbPediaURIs
+import com.arclights.dbpediaasker.interpreter.MaltParserWrapper
 import com.arclights.dbpediaasker.interpreter.TaggerWrapper
 import com.arclights.dbpediaasker.namedEnteties.NamedEntity
 import com.arclights.dbpediaasker.namedEntities.extractNamedEntities
-import com.arclights.dbpediaasker.serverInterpreter.GetDependencyStructure
 import com.arclights.dbpediaasker.serverInterpreter.GetTriples
 import com.arclights.dbpediaasker.serverInterpreter.ParseTagTranslations
 import com.arclights.dbpediaasker.triple.Triple
@@ -24,7 +24,10 @@ import org.slf4j.LoggerFactory
 import java.util.ArrayList
 
 @Singleton
-class AskerService @Inject constructor(private val taggerWrapper: TaggerWrapper) : Managed {
+class AskerService @Inject constructor(
+        private val maltParserWrapper: MaltParserWrapper,
+        private val taggerWrapper: TaggerWrapper
+) : Managed {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -50,19 +53,18 @@ class AskerService @Inject constructor(private val taggerWrapper: TaggerWrapper)
         logger.debug(taggedQuestion.toString())
 
         val NEs = extractNamedEntities(taggedQuestion)
-        for (ne in NEs.values) {
-            ne.setIdentifiers(dbpediaURIs)
+        NEs.forEach {
+            it.value.setIdentifiers(dbpediaURIs)
         }
         NEs.clearUp()
         logger.debug("Named entities extracted...")
         logger.debug("Named entities:")
-        for (key in NEs.keys) {
-            logger.debug(key + "->" + NEs[key])
+        NEs.forEach { key, value ->
+            logger.debug("$key->$value")
         }
 
         logger.debug("Retrieving dependency structure...")
-        val ds = GetDependencyStructure
-                .getStructure()
+        val ds = maltParserWrapper.getDependecyStructure(taggedQuestion)
         logger.debug("Derpendency structure retreived")
 
         logger.debug("Creating triples...")

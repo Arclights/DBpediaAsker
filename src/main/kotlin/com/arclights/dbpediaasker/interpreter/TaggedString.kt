@@ -20,7 +20,24 @@ data class TaggedString(
         val neTag: IOB?,
         val neType: String?,
         val tokenId: String
-)
+) {
+    fun toConllString() = listOf(
+            wordIndex.toString(),
+            wordForm,
+            lemma,
+            posTagCoarse ?: '_',
+            posTagFine ?: '_',
+            morphologicalFeatures?.joinToString("|") ?: '_',
+            head ?: '_',
+            dependencyType ?: '_',
+            chunkTag ?: '_',
+            chunkType ?: '_',
+            neTag ?: '_',
+            neType ?: '_',
+            tokenId
+    )
+            .joinToString("\t")
+}
 
 class TaggedStringAppender : Appendable {
 

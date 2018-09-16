@@ -8,3 +8,6 @@ labels_en_uris_sv.ttl
 
 iri_same_as_uri_en.ttl
 	Can be downloaded from http://data.dws.informatik.uni-mannheim.de/dbpedia/[year]/en/iri_same_as_uri_en.ttl.bz2
+
+swemalt-1.7.2.mco
+http://www.maltparser.org/mco/swedish_parser/swemalt-1.7.2.mco
