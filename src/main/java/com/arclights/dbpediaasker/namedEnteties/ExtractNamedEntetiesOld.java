@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class ExtractNamedEnteties {
+public class ExtractNamedEntetiesOld {
 
 	/**
 	 * Extracts the named entities found by Stagger

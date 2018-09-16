@@ -9,7 +9,7 @@ import java.util.HashMap;
 
 import com.arclights.dbpediaasker.dbPedia.ParseDbPediaURIs;
 import com.arclights.dbpediaasker.dbPedia.TranslateTags;
-import com.arclights.dbpediaasker.namedEnteties.ExtractNamedEnteties;
+import com.arclights.dbpediaasker.namedEnteties.ExtractNamedEntetiesOld;
 import com.arclights.dbpediaasker.namedEnteties.NamedEntities;
 import com.arclights.dbpediaasker.namedEnteties.NamedEntity;
 import com.arclights.dbpediaasker.question.ExtractQuestions;
@@ -29,7 +29,7 @@ public class QuestionProcessor {
 	public static void main(String[] args) {
 		try {
 			HashMap<String, String> dbpediaURIs = ParseDbPediaURIs.parse();
-			NamedEntities NEs = ExtractNamedEnteties
+			NamedEntities NEs = ExtractNamedEntetiesOld
 					.extract("RDF_output.txt.conll");
 			for (NamedEntity ne : NEs.values()) {
 				ne.setIdentifiers(dbpediaURIs);

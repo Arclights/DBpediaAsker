@@ -2,8 +2,8 @@ package com.arclights.dbpediaasker.asker
 
 import com.arclights.dbpediaasker.dbPedia.ParseDbPediaURIs
 import com.arclights.dbpediaasker.interpreter.TaggerWrapper
-import com.arclights.dbpediaasker.namedEnteties.ExtractNamedEnteties
 import com.arclights.dbpediaasker.namedEnteties.NamedEntity
+import com.arclights.dbpediaasker.namedEntities.extractNamedEntities
 import com.arclights.dbpediaasker.serverInterpreter.GetDependencyStructure
 import com.arclights.dbpediaasker.serverInterpreter.GetTriples
 import com.arclights.dbpediaasker.serverInterpreter.ParseTagTranslations
@@ -11,18 +11,22 @@ import com.arclights.dbpediaasker.triple.Triple
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import io.dropwizard.lifecycle.Managed
-import org.openrdf.query.*
+import org.openrdf.query.BindingSet
+import org.openrdf.query.MalformedQueryException
+import org.openrdf.query.QueryEvaluationException
+import org.openrdf.query.QueryLanguage
+import org.openrdf.query.TupleQueryResult
 import org.openrdf.repository.RepositoryConnection
 import org.openrdf.repository.RepositoryException
 import org.openrdf.repository.http.HTTPRepository
 import org.openrdf.repository.sparql.SPARQLRepository
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.util.ArrayList
 
 @Singleton
 class AskerService @Inject constructor(private val taggerWrapper: TaggerWrapper) : Managed {
 
-    val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     private lateinit var dbpediaURIs: Map<String, String>
     private lateinit var tagTrans: Map<String, String>
@@ -45,8 +49,7 @@ class AskerService @Inject constructor(private val taggerWrapper: TaggerWrapper)
         logger.debug("Question tagged")
         logger.debug(taggedQuestion.toString())
 
-        val NEs = ExtractNamedEnteties
-                .extract("questionToTag.txt.conll")
+        val NEs = extractNamedEntities(taggedQuestion)
         for (ne in NEs.values) {
             ne.setIdentifiers(dbpediaURIs)
         }

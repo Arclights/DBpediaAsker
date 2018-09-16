@@ -60,12 +60,12 @@ class TaggerWrapper @Inject constructor(private val taggerModel: CharSource) : M
      * @throws java.io.IOException
      */
     @Throws(FormatException::class, TagNameException::class, IOException::class)
-    fun tag(question: String): TaggedStrings {
+    fun tag(question: String): List<TaggedString> {
         var fileID = question.split("\\s".toRegex()).first()
         val reader = StringReader(question)
         val tokenizer = getTokenizer(reader, lang)
         var sentIdx = 0
-        val taggedStrings = TaggedStrings()
+        val tagAppender = TaggedStringAppender()
         tokenizer
                 .getSentenceIterator()
                 .forEach { sentence ->
@@ -76,11 +76,11 @@ class TaggerWrapper @Inject constructor(private val taggerModel: CharSource) : M
                     val sent = sentence.map { TaggedToken(it, "$fileID:$sentIdx:$it.offset") }.toTypedArray()
                     val taggedSent = tagger.tagSentence(sent, true, false)
 
-                    tagger.taggedData.writeConllSentence(taggedStrings, taggedSent, plainOutput)
+                    tagger.taggedData.writeConllSentence(tagAppender, taggedSent, plainOutput)
                     sentIdx++
                 }
         tokenizer.yyclose()
-        return taggedStrings
+        return tagAppender.asList()
     }
 
     /**

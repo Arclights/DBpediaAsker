@@ -29,8 +29,9 @@ public class NamedEntity implements Comparable<NamedEntity> {
 	 * 
 	 * @param word
 	 */
-	public void put(String word) {
+	public NamedEntity put(String word) {
 		words.add(word);
+		return this;
 	}
 
 	/**

@@ -22,7 +22,7 @@ data class TaggedString(
         val tokenId: String
 )
 
-class TaggedStrings : Appendable {
+class TaggedStringAppender : Appendable {
 
     private var taggedStrings = emptyList<TaggedString>()
 
@@ -74,6 +74,8 @@ class TaggedStrings : Appendable {
                 "B" -> IOB.B
                 else -> throw IllegalArgumentException("Unknown IOB representation: $string")
             }
+
+    fun asList() = taggedStrings
 
     override fun toString() = taggedStrings.toString()
 
