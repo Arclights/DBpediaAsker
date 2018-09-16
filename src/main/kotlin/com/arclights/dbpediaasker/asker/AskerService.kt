@@ -3,11 +3,12 @@ package com.arclights.dbpediaasker.asker
 import com.arclights.dbpediaasker.dbPedia.ParseDbPediaURIs
 import com.arclights.dbpediaasker.interpreter.MaltParserWrapper
 import com.arclights.dbpediaasker.interpreter.TaggerWrapper
+import com.arclights.dbpediaasker.interpreter.getTriples
+import com.arclights.dbpediaasker.interpreter.label
 import com.arclights.dbpediaasker.namedEnteties.NamedEntity
 import com.arclights.dbpediaasker.namedEntities.extractNamedEntities
-import com.arclights.dbpediaasker.serverInterpreter.GetTriples
 import com.arclights.dbpediaasker.serverInterpreter.ParseTagTranslations
-import com.arclights.dbpediaasker.triple.Triple
+import com.arclights.dbpediaasker.triple.URI
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import io.dropwizard.lifecycle.Managed
@@ -21,7 +22,6 @@ import org.openrdf.repository.RepositoryException
 import org.openrdf.repository.http.HTTPRepository
 import org.openrdf.repository.sparql.SPARQLRepository
 import org.slf4j.LoggerFactory
-import java.util.ArrayList
 
 @Singleton
 class AskerService @Inject constructor(
@@ -68,14 +68,16 @@ class AskerService @Inject constructor(
         logger.debug("Derpendency structure retreived")
 
         logger.debug("Creating triples...")
-        val triples = GetTriples.get(ds!!, NEs)
+        val triples = getTriples(ds, NEs)
 
         for (t in triples) {
-            println(t)
+            println(tripleToString(t))
         }
 
         return formatString(getAnswer(triples, tagTrans))
     }
+
+    private fun tripleToString(t: Triple<NamedEntity, URI, Any?>) = "${t.first}---${t.second}-->${t.third}"
 
     /**
      * Returns an answer for the question, if there is one, by first searching
@@ -89,24 +91,14 @@ class AskerService @Inject constructor(
      * @return
      */
     private fun getAnswer(
-            triples: ArrayList<Triple>,
+            triples: List<Triple<NamedEntity, URI, Any?>>,
             tagTrans: Map<String, String>
-    ): String? {
-        var answer: String? = "Error: Doesn't contain any named entity"
-        if (!triples.isEmpty()) {
-            answer = searchlocalDb(triples[0])
-
-            if (answer == null) {
-                answer = searchDbPedia(triples[0], tagTrans)
+    ): String =
+            if (!triples.isEmpty()) {
+                searchlocalDb(triples[0]) ?: searchDbPedia(triples[0], tagTrans) ?: "I don't know the answer to that"
+            } else {
+                "Error: Doesn't contain any named entity"
             }
-
-            if (answer == null) {
-                answer = "I don't know the answer to that"
-            }
-        }
-
-        return answer
-    }
 
     /**
      * Searches the local database created by the question processor
@@ -115,9 +107,8 @@ class AskerService @Inject constructor(
      * - The com.arclights.dbpediaasker.triple to search for
      * @return
      */
-    private fun searchlocalDb(t: Triple): String? {
-        val repo = HTTPRepository(
-                "http://aakerberg.net:8077/openrdf-sesame/", "solution")
+    private fun searchlocalDb(t: Triple<NamedEntity, URI, Any?>): String? {
+        val repo = HTTPRepository("http://localhost:8090/openrdf-sesame/", "solution")
         var con: RepositoryConnection? = null
         try {
             con = repo.connection
@@ -171,13 +162,13 @@ class AskerService @Inject constructor(
      * - The com.arclights.dbpediaasker.triple
      * @return
      */
-    private fun getLocalDbQuery(t: Triple): String {
-        return ("PREFIX tags:<http://aakerber.net/tags/>\nPREFIX dbp:<http://dbpedia.org/resource/>\nPREFIX dbpporp:<http://dbpedia.org/property/>\nPREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nselect ?name {"
-                + (t.s as NamedEntity).dbPediaURI.queryVersion
-                + " <"
-                + t.label
-                + "> ?o .\n?o <http://dbpedia.org/property/name> ?name .}")
-    }
+    private fun getLocalDbQuery(t: Triple<NamedEntity, URI, Any?>): String =
+            "PREFIX tags:<http://aakerber.net/tags/>\n" +
+                    "PREFIX dbp:<http://dbpedia.org/resource/>\n" +
+                    "PREFIX dbpporp:<http://dbpedia.org/property/>\n" +
+                    "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+                    "select ?name {${t.first.dbPediaURI.queryVersion} <${t.label()}> ?o .\n" +
+                    "?o <http://dbpedia.org/property/name> ?name .}"
 
     /**
      * Generates the query to search the local database without getting the
@@ -187,11 +178,12 @@ class AskerService @Inject constructor(
      * - The com.arclights.dbpediaasker.triple
      * @return
      */
-    private fun getAltLocalDbQuery(t: Triple): String {
-        return ("PREFIX tags:<http://aakerber.net/tags/>\nPREFIX dbp:<http://dbpedia.org/resource/>\nPREFIX dbpporp:<http://dbpedia.org/property/>\nPREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nselect ?o {"
-                + (t.s as NamedEntity).dbPediaURI.queryVersion
-                + " <" + t.label + "> ?o .}")
-    }
+    private fun getAltLocalDbQuery(t: Triple<NamedEntity, URI, Any?>): String =
+            "PREFIX tags:<http://aakerber.net/tags/>\n" +
+                    "PREFIX dbp:<http://dbpedia.org/resource/>\n" +
+                    "PREFIX dbpporp:<http://dbpedia.org/property/>\n" +
+                    "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+                    "select ?o {${t.first.dbPediaURI.queryVersion} <${t.label()}> ?o .}"
 
     /**
      * Searches DBpedia for an answer
@@ -203,7 +195,7 @@ class AskerService @Inject constructor(
      * @return
      */
     private fun searchDbPedia(
-            t: Triple,
+            t: Triple<NamedEntity, URI, Any?>,
             tagTrans: Map<String, String>
     ): String? {
         val repo = SPARQLRepository("http://dbpedia.org/sparql/")
@@ -212,8 +204,8 @@ class AskerService @Inject constructor(
             repo.initialize()
             val con = repo.connection
             var tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
-                    getDbPediaQuery(t, tagTrans))
-            logger.debug("Dbpedia Query: " + getDbPediaQuery(t, tagTrans))
+                    getDBpediaQuery(t, tagTrans))
+            logger.debug("Dbpedia Query: " + getDBpediaQuery(t, tagTrans))
             result = tupleQuery.evaluate()
             val bindingSet: BindingSet
             if (result!!.hasNext()) {
@@ -221,16 +213,16 @@ class AskerService @Inject constructor(
                 return bindingSet.getValue("name").toString()
             } else {
                 tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
-                        getAltDbPediaQuery(t, tagTrans))
-                logger.debug("Dbpedia Alternative Query: " + getAltDbPediaQuery(t, tagTrans))
+                        getAltDBpediaQuery(t, tagTrans))
+                logger.debug("Dbpedia Alternative Query: " + getAltDBpediaQuery(t, tagTrans))
                 result = tupleQuery.evaluate()
                 if (result!!.hasNext()) {
                     bindingSet = result.next()
                     return bindingSet.getValue("name").toString()
                 } else {
                     tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
-                            getAlt2DbPediaQuery(t, tagTrans))
-                    logger.debug("Dbpedia Alternative Query: " + getAlt2DbPediaQuery(t, tagTrans))
+                            getAlt2DBpediaQuery(t, tagTrans))
+                    logger.debug("Dbpedia Alternative Query: " + getAlt2DBpediaQuery(t, tagTrans))
                     result = tupleQuery.evaluate()
                     if (result!!.hasNext()) {
                         bindingSet = result.next()
@@ -271,14 +263,12 @@ class AskerService @Inject constructor(
      * - The tag -> label translations
      * @return
      */
-    private fun getDbPediaQuery(t: Triple,
-                                tagTrans: Map<String, String>): String {
-        return ("select ?name {"
-                + (t.s as NamedEntity).dbPediaURI.queryVersion
-                + " <"
-                + tagTrans[t.label]
-                + "> ?o .\n?o <http://dbpedia.org/property/name> ?name .} LIMIT 1")
-    }
+    private fun getDBpediaQuery(
+            t: Triple<NamedEntity, URI, Any?>,
+            tagTrans: Map<String, String>
+    ): String =
+            "select ?name {${t.first.dbPediaURI.queryVersion} <${tagTrans[t.label()]}> ?o .\n" +
+                    "?o <http://dbpedia.org/property/name> ?name .} LIMIT 1"
 
     /**
      * Generates the query to search DBpedia and trying to get the potential
@@ -290,14 +280,12 @@ class AskerService @Inject constructor(
      * - The tag -> label translations
      * @return
      */
-    private fun getAltDbPediaQuery(t: Triple,
-                                   tagTrans: Map<String, String>): String {
-        return ("select ?name {"
-                + (t.s as NamedEntity).dbPediaURI.queryVersion
-                + " <"
-                + tagTrans[t.label]
-                + "> ?o .\n?o <http://dbpedia.org/property/enName> ?name .} LIMIT 1")
-    }
+    private fun getAltDBpediaQuery(
+            t: Triple<NamedEntity, URI, Any?>,
+            tagTrans: Map<String, String>
+    ): String =
+            "select ?name {${t.first.dbPediaURI.queryVersion} <${tagTrans[t.label()]}> ?o .\n" +
+                    "?o <http://dbpedia.org/property/enName> ?name .} LIMIT 1"
 
     /**
      * Generates the query to search DBpedia without getting the potential name
@@ -309,12 +297,11 @@ class AskerService @Inject constructor(
      * - The tag -> label translations
      * @return
      */
-    private fun getAlt2DbPediaQuery(t: Triple,
-                                    tagTrans: Map<String, String>): String {
-        return ("select ?o {"
-                + (t.s as NamedEntity).dbPediaURI.queryVersion
-                + " <" + tagTrans[t.label] + "> ?o .} LIMIT 1")
-    }
+    private fun getAlt2DBpediaQuery(
+            t: Triple<NamedEntity, URI, Any?>,
+            tagTrans: Map<String, String>
+    ): String =
+            "select ?o {${t.first.dbPediaURI.queryVersion} <${tagTrans[t.label()]}> ?o .} LIMIT 1"
 
     /**
      * Removes possible quotes from string. If there isn't any quotes the
