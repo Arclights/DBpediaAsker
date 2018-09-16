@@ -2,11 +2,13 @@ package com.arclights.dbpediaasker.interpreter
 
 import com.arclights.dbpediaasker.tools.DependencyStructureTool
 import com.google.inject.Inject
+import com.google.inject.Singleton
 import io.dropwizard.lifecycle.Managed
 import org.maltparser.MaltParserService
 import org.maltparser.core.syntaxgraph.DependencyStructure
 import org.slf4j.LoggerFactory
 
+@Singleton
 class MaltParserWrapper @Inject constructor() : Managed {
 
     private val logger = LoggerFactory.getLogger(this::class.java)

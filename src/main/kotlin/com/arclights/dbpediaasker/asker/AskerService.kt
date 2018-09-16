@@ -1,6 +1,7 @@
 package com.arclights.dbpediaasker.asker
 
 import com.arclights.dbpediaasker.dbPedia.ParseDbPediaURIs
+import com.arclights.dbpediaasker.dbpedia.DBpediaService
 import com.arclights.dbpediaasker.interpreter.MaltParserWrapper
 import com.arclights.dbpediaasker.interpreter.TaggerWrapper
 import com.arclights.dbpediaasker.interpreter.getTriples
@@ -16,17 +17,16 @@ import org.openrdf.query.BindingSet
 import org.openrdf.query.MalformedQueryException
 import org.openrdf.query.QueryEvaluationException
 import org.openrdf.query.QueryLanguage
-import org.openrdf.query.TupleQueryResult
 import org.openrdf.repository.RepositoryConnection
 import org.openrdf.repository.RepositoryException
 import org.openrdf.repository.http.HTTPRepository
-import org.openrdf.repository.sparql.SPARQLRepository
 import org.slf4j.LoggerFactory
 
 @Singleton
 class AskerService @Inject constructor(
         private val maltParserWrapper: MaltParserWrapper,
-        private val taggerWrapper: TaggerWrapper
+        private val taggerWrapper: TaggerWrapper,
+        private val dBpediaService: DBpediaService
 ) : Managed {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -70,14 +70,14 @@ class AskerService @Inject constructor(
         logger.debug("Creating triples...")
         val triples = getTriples(ds, NEs)
 
-        for (t in triples) {
-            println(tripleToString(t))
+        triples.forEach {
+            println(tripleToString(it))
         }
 
         return formatString(getAnswer(triples, tagTrans))
     }
 
-    private fun tripleToString(t: Triple<NamedEntity, URI, Any?>) = "${t.first}---${t.second}-->${t.third}"
+    private fun tripleToString(t: Triple<NamedEntity, URI, Any?>) = "${t.first} --- ${t.second} --> ${t.third}"
 
     /**
      * Returns an answer for the question, if there is one, by first searching
@@ -94,8 +94,9 @@ class AskerService @Inject constructor(
             triples: List<Triple<NamedEntity, URI, Any?>>,
             tagTrans: Map<String, String>
     ): String =
-            if (!triples.isEmpty()) {
-                searchlocalDb(triples[0]) ?: searchDbPedia(triples[0], tagTrans) ?: "I don't know the answer to that"
+            if (triples.isNotEmpty()) {
+                searchlocalDb(triples.first()) ?: dBpediaService.searchDBpedia(triples.first(), tagTrans)
+                ?: "I don't know the answer to that"
             } else {
                 "Error: Doesn't contain any named entity"
             }
@@ -185,123 +186,6 @@ class AskerService @Inject constructor(
                     "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
                     "select ?o {${t.first.dbPediaURI.queryVersion} <${t.label()}> ?o .}"
 
-    /**
-     * Searches DBpedia for an answer
-     *
-     * @param t
-     * - The com.arclights.dbpediaasker.triple
-     * @param tagTrans
-     * - The tag -> label translations
-     * @return
-     */
-    private fun searchDbPedia(
-            t: Triple<NamedEntity, URI, Any?>,
-            tagTrans: Map<String, String>
-    ): String? {
-        val repo = SPARQLRepository("http://dbpedia.org/sparql/")
-        var result: TupleQueryResult? = null
-        try {
-            repo.initialize()
-            val con = repo.connection
-            var tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
-                    getDBpediaQuery(t, tagTrans))
-            logger.debug("Dbpedia Query: " + getDBpediaQuery(t, tagTrans))
-            result = tupleQuery.evaluate()
-            val bindingSet: BindingSet
-            if (result!!.hasNext()) {
-                bindingSet = result.next()
-                return bindingSet.getValue("name").toString()
-            } else {
-                tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
-                        getAltDBpediaQuery(t, tagTrans))
-                logger.debug("Dbpedia Alternative Query: " + getAltDBpediaQuery(t, tagTrans))
-                result = tupleQuery.evaluate()
-                if (result!!.hasNext()) {
-                    bindingSet = result.next()
-                    return bindingSet.getValue("name").toString()
-                } else {
-                    tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL,
-                            getAlt2DBpediaQuery(t, tagTrans))
-                    logger.debug("Dbpedia Alternative Query: " + getAlt2DBpediaQuery(t, tagTrans))
-                    result = tupleQuery.evaluate()
-                    if (result!!.hasNext()) {
-                        bindingSet = result.next()
-                        val res = bindingSet.getValue("o").toString()
-                                .split("/".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                        return res[res.size - 1]
-                    }
-                }
-            }
-        } catch (e: RepositoryException) {
-            // TODO Auto-generated catch block
-            e.printStackTrace()
-        } catch (e: QueryEvaluationException) {
-            // TODO Auto-generated catch block
-            e.printStackTrace()
-        } catch (e: MalformedQueryException) {
-            // TODO Auto-generated catch block
-            e.printStackTrace()
-        } finally {
-            try {
-                result?.close()
-            } catch (e: QueryEvaluationException) {
-                // TODO Auto-generated catch block
-                e.printStackTrace()
-            }
-
-        }
-        return null
-    }
-
-    /**
-     * Generates the query to search DBpedia and trying to get the potential
-     * name of the entity
-     *
-     * @param t
-     * - The com.arclights.dbpediaasker.triple
-     * @param tagTrans
-     * - The tag -> label translations
-     * @return
-     */
-    private fun getDBpediaQuery(
-            t: Triple<NamedEntity, URI, Any?>,
-            tagTrans: Map<String, String>
-    ): String =
-            "select ?name {${t.first.dbPediaURI.queryVersion} <${tagTrans[t.label()]}> ?o .\n" +
-                    "?o <http://dbpedia.org/property/name> ?name .} LIMIT 1"
-
-    /**
-     * Generates the query to search DBpedia and trying to get the potential
-     * English name of the entity
-     *
-     * @param t
-     * - The com.arclights.dbpediaasker.triple
-     * @param tagTrans
-     * - The tag -> label translations
-     * @return
-     */
-    private fun getAltDBpediaQuery(
-            t: Triple<NamedEntity, URI, Any?>,
-            tagTrans: Map<String, String>
-    ): String =
-            "select ?name {${t.first.dbPediaURI.queryVersion} <${tagTrans[t.label()]}> ?o .\n" +
-                    "?o <http://dbpedia.org/property/enName> ?name .} LIMIT 1"
-
-    /**
-     * Generates the query to search DBpedia without getting the potential name
-     * of the entity
-     *
-     * @param t
-     * - The com.arclights.dbpediaasker.triple
-     * @param tagTrans
-     * - The tag -> label translations
-     * @return
-     */
-    private fun getAlt2DBpediaQuery(
-            t: Triple<NamedEntity, URI, Any?>,
-            tagTrans: Map<String, String>
-    ): String =
-            "select ?o {${t.first.dbPediaURI.queryVersion} <${tagTrans[t.label()]}> ?o .} LIMIT 1"
 
     /**
      * Removes possible quotes from string. If there isn't any quotes the
@@ -310,18 +194,12 @@ class AskerService @Inject constructor(
      * is surrounded by quotes and a language marker, the marker and the quotes
      * are remove, ie. "Moscow"@en.
      *
-     * @param in
+     * @param string
      * @return
      */
-    private fun formatString(`in`: String?): String? {
-        if (`in` != null && `in`.isNotEmpty()) {
-            if (`in`[0] == '\"') {
-                return if (`in`[`in`.length - 1] == '\"') {
-                    `in`.substring(1, `in`.length - 1)
-                } else `in`.substring(1, `in`.length - 4)
-            }
-            return `in`.replace('_', ' ')
-        }
-        return `in`
-    }
+    private fun formatString(string: String): String =
+            string
+                    .replace('_', ' ')
+                    .replace("\"", "")
+                    .replace("@\\w{2}".toRegex(), "")
 }

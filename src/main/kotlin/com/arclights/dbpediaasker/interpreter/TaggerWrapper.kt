@@ -2,6 +2,7 @@ package com.arclights.dbpediaasker.interpreter
 
 import com.google.common.io.CharSource
 import com.google.inject.Inject
+import com.google.inject.Singleton
 import io.dropwizard.lifecycle.Managed
 import org.slf4j.LoggerFactory
 import se.su.ling.stagger.EnglishTokenizer
@@ -24,6 +25,7 @@ import java.io.StringReader
  * Wrapper of Stagger that pre-loads Stagger so it doesn't have to be
  * loaded for every question
  */
+@Singleton
 class TaggerWrapper @Inject constructor(private val taggerModel: CharSource) : Managed {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
