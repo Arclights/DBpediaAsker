@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    jcenter()
+
+    maven {
+        name = 'myRepo'
+        url = "file://${buildDir}/repo"
+    }
+}
+
+dependencies {
+    implementation "com.arclights.dbpediaasker:commons:1.0.0"
+    compile 'org.openrdf.sesame:sesame-repository-manager:4.1.2'
+}

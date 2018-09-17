@@ -8,3 +8,6 @@
  */
 
 rootProject.name = 'DBpediaAsker'
+includeBuild 'commons'
+includeBuild 'application'
+includeBuild 'question-parser'

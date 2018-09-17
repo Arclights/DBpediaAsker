@@ -1,0 +1,29 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = 'com.arclights.dbpediaasker'
+
+dependencies {
+    compile 'org.maltparser:maltparser:1.9.2'
+}
+
+repositories{
+    jcenter()
+}
+
+publishing {
+    publications {
+        commons(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'myRepo'
+            url = "file://${buildDir}/repo"
+        }
+    }
+}
